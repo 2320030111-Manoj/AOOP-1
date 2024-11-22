@@ -1,0 +1,78 @@
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+public class MessagingServiceTest {
+
+    @Test
+    public void testBasicMessagingService() {
+        MessagingService service = new BasicMessagingService();
+        String message = "Hello World";
+        String sentMessage = service.sendMessage(message);
+        String receivedMessage = service.receiveMessage(sentMessage);
+
+        assertEquals(message, sentMessage, "Message sent should match the input");
+        assertEquals(message, receivedMessage, "Message received should match the input");
+    }
+
+    @Test
+    public void testEncryptionDecorator() {
+        MessagingService service = new EncryptionDecorator(new BasicMessagingService());
+        String message = "Hello World";
+
+        // Sending encrypts the message
+        String sentMessage = service.sendMessage(message);
+        assertNotEquals(message, sentMessage, "Encrypted message should not match the plain text");
+
+        // Receiving decrypts the message back
+        String receivedMessage = service.receiveMessage(sentMessage);
+        assertEquals(message, receivedMessage, "Decrypted message should match the original message");
+    }
+
+    @Test
+    public void testCompressionDecorator() {
+        MessagingService service = new CompressionDecorator(new BasicMessagingService());
+        String message = "Hello World";
+
+        // Sending compresses the message
+        String sentMessage = service.sendMessage(message);
+        assertNotEquals(message, sentMessage, "Compressed message should not match the plain text");
+        assertEquals("HelloWorld", sentMessage, "Message should be compressed by removing spaces");
+
+        // Receiving decompresses the message
+        String receivedMessage = service.receiveMessage(sentMessage);
+        assertEquals("HelloWorld", receivedMessage, "Decompressed message should match the compressed message");
+    }
+
+    @Test
+    public void testEncryptionAndCompressionCombination() {
+        MessagingService service = new CompressionDecorator(
+                new EncryptionDecorator(new BasicMessagingService())
+        );
+        String message = "Hello World";
+
+        // Sending applies encryption first, then compression
+        String sentMessage = service.sendMessage(message);
+        assertNotEquals(message, sentMessage, "Message should be both encrypted and compressed");
+        assertEquals("dlroWolleH", sentMessage, "Compressed and encrypted message should match expected result");
+
+        // Receiving reverses the process: decompression, then decryption
+        String receivedMessage = service.receiveMessage(sentMessage);
+        assertEquals(message, receivedMessage, "Final received message should match the original message");
+    }
+
+    @Test
+    public void testCompressionAndEncryptionCombination() {
+        MessagingService service = new EncryptionDecorator(
+                new CompressionDecorator(new BasicMessagingService())
+        );
+        String message = "Hello World";
+
+        // Sending applies compression first, then encryption
+        String sentMessage = service.sendMessage(message);
+        assertNotEquals(message, sentMessage, "Message should be both compressed and encrypted");
+
+        // Decrypting will yield compressed content, then decompressing gives original
+        String receivedMessage = service.receiveMessage(sentMessage);
+        assertEquals(message, receivedMessage, "Final received message should match the original message");
+    }
+}
