@@ -1,0 +1,64 @@
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import java.time.LocalTime;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+public class AlarmClockTest {
+    private AlarmClock alarmClock;
+
+    @BeforeEach
+    public void setUp() {
+        alarmClock = new AlarmClock();
+    }
+
+    @Test
+    public void testSetAlarm() {
+        LocalTime alarmTime = LocalTime.of(6, 30);
+        alarmClock.setAlarm(alarmTime);
+
+        List<LocalTime> alarms = alarmClock.listAlarms();
+        assertEquals(1, alarms.size(), "There should be one alarm set");
+        assertEquals(alarmTime, alarms.get(0), "The alarm time should match the set time");
+    }
+
+    @Test
+    public void testIsAlarmTime() {
+        LocalTime alarmTime = LocalTime.of(7, 0);
+        alarmClock.setAlarm(alarmTime);
+
+        assertTrue(alarmClock.isAlarmTime(LocalTime.of(7, 0)), "It should be alarm time");
+        assertFalse(alarmClock.isAlarmTime(LocalTime.of(8, 0)), "It should not be alarm time");
+    }
+
+    @Test
+    public void testListAlarms() {
+        LocalTime alarm1 = LocalTime.of(6, 0);
+        LocalTime alarm2 = LocalTime.of(7, 30);
+        alarmClock.setAlarm(alarm1);
+        alarmClock.setAlarm(alarm2);
+
+        List<LocalTime> alarms = alarmClock.listAlarms();
+        assertEquals(2, alarms.size(), "There should be two alarms set");
+        assertTrue(alarms.contains(alarm1), "The alarms list should contain the first alarm");
+        assertTrue(alarms.contains(alarm2), "The alarms list should contain the second alarm");
+    }
+
+    @Test
+    public void testSetAlarmWithNull() {
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            alarmClock.setAlarm(null);
+        });
+        assertEquals("Alarm time cannot be null", exception.getMessage());
+    }
+
+    @Test
+    public void testIsAlarmTimeWithNull() {
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            alarmClock.isAlarmTime(null);
+        });
+        assertEquals("Current time cannot be null", exception.getMessage());
+    }
+}
